@@ -75,32 +75,31 @@ def get_factors(available_factors):
     
 
 def build_parser():
-    parser = argparse.ArgumentParser(description="Factor-Lake runner")
-    # (keep your existing args)
+    parser = argparse.ArgumentParser(description="Factor-Lake runtime options")
+    # You can add other existing args here if you already had them.
 
-    # NEW
+    # CHANGED: allow omission so we can prompt
     parser.add_argument(
         "--weighting",
         choices=["equal", "mcap"],
-        default="equal",
-        help="Portfolio weighting scheme. 'equal' (default) or 'mcap' for market-cap weights."
+        help="Weighting scheme: 'equal' or 'mcap'. If omitted, you'll be prompted."
     )
     parser.add_argument(
         "--top-percent",
         type=float,
         default=10.0,
-        help="Top percent of names to select each year (default: 10)."
+        help="Top percent of names to select (default: 10)."
     )
     parser.add_argument(
         "--restrict-fossil-fuels",
         action="store_true",
-        help="Exclude fossil-fuel industries when building holdings."
+        help="Exclude fossil-fuel industries from holdings if set."
     )
     parser.add_argument(
         "--verbosity",
         type=int,
-        default=0,
-        help="0=silent, 1=summary, 2=yearly logs, 3=debug"
+        default=1,
+        help="0=silent, 1=summary, 2=per-year logs, 3=debug"
     )
     return parser
 
@@ -108,11 +107,20 @@ def get_user_options():
     parser = build_parser()
     args = parser.parse_args()
 
-    # Return a dict (or your existing config object)
+    # NEW: interactive prompt if not provided on CLI
+    if args.weighting is None:
+        try:
+            ans = input("Use market-cap weighting? [y/N]: ").strip().lower()
+            weighting = "mcap" if ans in ("y", "yes") else "equal"
+        except Exception:
+            weighting = "equal"
+    else:
+        weighting = args.weighting
+
     return {
-        # include your existing fields here too
-        "weighting": args.weighting,
-        "top_percent": args.top_percent,
-        "restrict_fossil_fuels": args.restrict_fossil_fuels,
-        "verbosity": args.verbosity,
+        "weighting": weighting,                      # NEW
+        "top_percent": float(args.top_percent),      # NEW (default 10)
+        "restrict_fossil_fuels": bool(args.restrict_fossil_fuels),
+        "verbosity": int(args.verbosity),
     }
+    
