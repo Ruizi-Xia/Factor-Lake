@@ -11,6 +11,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def main():
+    opts = get_user_options()
+    weighting   = opts["weighting"]        # 'equal' or 'mcap'
+    top_percent = opts["top_percent"]      # float, default 10.0
+
     ### Ask about fossil fuel restriction first ###
     restrict_fossil_fuels = get_fossil_fuel_restriction()  # Prompt user (Yes/No)
 
@@ -30,8 +34,7 @@ def main():
         show_loading_progress=show_loading,
         sectors=selected_sectors
     )
-    opts = get_user_options()
-
+    
     ### Data preprocessing ###
     # Note: Fossil fuel filtering is applied later in calculate_holdings() for each year
     rdata['Ticker'] = rdata['Ticker-Region'].dropna().apply(lambda x: x.split('-')[0].strip())
@@ -73,8 +76,8 @@ def main():
         initial_aum=1,
         verbosity=verbosity_level,
         restrict_fossil_fuels=restrict_fossil_fuels,
-        weighting=opts["weighting"],
-        top_percent=opts["top_percent"]
+        weighting=weighting,                # NEW
+        top_percent=top_percent,            # NEW
     )
     
     # Plot portfolio growth
